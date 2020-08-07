@@ -71,7 +71,6 @@ def next_value(state, all_states, chess):
     if reward(state) == 0:
         value = []
         for i in range(9):
-            ###
             if state[i] == 0:
                 res = state[:]
                 res[i] = chess
