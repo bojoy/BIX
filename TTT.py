@@ -157,7 +157,6 @@ def play_ai():
             print('It is a tie game.')
             break
 
-        #pos = int(input('Enter the position that you want, please. '))
         while 1:
             pos_input = input('Enter the position that you want, please. ')
             try:
@@ -197,7 +196,7 @@ def play_human():
                 continue
             else:
                 if pos_pl > 9 or pos_pl < 1:
-                    print('Please enter a number from 0 to 9.')
+                    print('Please enter a number from 1 to 9.')
                     continue
                 elif state[pos_pl - 1] != 0:
                     print('The position has been taken. Please enter a empty position.')
