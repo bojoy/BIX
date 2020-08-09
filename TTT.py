@@ -1,15 +1,19 @@
 import numpy as np
+
+# show the position of chess board.
 def print_position():
     print('+---+---+---+')
-    print('| '+'1'+' | '+'2'+' | '+'3'+' |')
+    print('| ' + '1' + ' | ' + '2' + ' | ' + '3' + ' |')
     print('+---+---+---+')
-    print('| '+'4'+' | '+'5'+' | '+'6'+' |')
+    print('| ' + '4' + ' | ' + '5' + ' | ' + '6' + ' |')
     print('+---+---+---+')
-    print('| '+'7'+' | '+'8'+' | '+'9'+' |')
+    print('| ' + '7' + ' | ' + '8' + ' | ' + '9' + ' |')
     print('+---+---+---+')
 
+
+# show the state of chess board.
 def print_chess_board(state):
-    dic = {1:'X', -1:'O', 0:' '}
+    dic = {1: 'X', -1: 'O', 0: ' '}
     print('+---+---+---+')
     print('| ' + dic[state[0]] + ' | ' + dic[state[1]] + ' | ' + dic[state[2]] + ' |')
     print('+---+---+---+')
@@ -18,6 +22,10 @@ def print_chess_board(state):
     print('| ' + dic[state[6]] + ' | ' + dic[state[7]] + ' | ' + dic[state[8]] + ' |')
     print('+---+---+---+')
 
+# get the reward of state:
+# 1: the game end.
+# 0: on going
+# -1: tie game
 def reward(state):
     if state[0] == state[1] == state[2] and state[0] != 0:
         return 1
@@ -41,7 +49,7 @@ def reward(state):
     else:
         return -1
 
-
+# get the all states of chess board.
 def get_all_states(cur_state, cur_chess, all_states):
     for i in range(9):
         if cur_state[i] == 0:
@@ -52,6 +60,7 @@ def get_all_states(cur_state, cur_chess, all_states):
                 if reward(new_state) == 0:
                     get_all_states(new_state, -cur_chess, all_states)
 
+
 def get_states():
     cur_chess = 1
     cur_state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -60,35 +69,40 @@ def get_states():
     get_all_states(cur_state, cur_chess, all_states)
     return all_states
 
+# get the random choice of a state
 def action(state):
     res = []
     for i in range(9):
         if state[i] == 0:
             res.append(i)
-    return res[np.random.randint(0,len(res))]
+    return res[np.random.randint(0, len(res))]
 
-def next_value(state, all_states, chess):
-    if reward(state) == 0:
-        value = []
+# get the next step of available states
+def next_value(cur_state, all_states, cur_chess):
+    if reward(cur_state) == 0:
+        res = []
         for i in range(9):
-            if state[i] == 0:
-                res = state[:]
-                res[i] = chess
-                value.append(all_states[tuple(res)])
-        return value
+            if cur_state[i] == 0:
+                tmp = cur_state[:]
+                tmp[i] = cur_chess
+                res.append(all_states[tuple(tmp)])
+        return res
     else:
         return [0]
 
-def feedback_value(state, all_states, pos, step=0.1, rate=0.9):
-    pre_state = state[:]
+# update the value of former states
+def feedback_value(cur_state, all_states, pos, step=0.1, rate=0.9):
+    pre_state = cur_state[:]
     while len(pos) > 1:
         pre_state[pos[-1]] = 0
-        all_states[tuple(pre_state)] = all_states[tuple(pre_state)] + step*(rate * all_states[tuple(state)] - all_states[tuple(pre_state)])
-        state = pre_state[:]
+        all_states[tuple(pre_state)] = all_states[tuple(pre_state)] + step * (
+                rate * all_states[tuple(cur_state)] - all_states[tuple(pre_state)])
+        cur_state = pre_state[:]
         pos = pos[:-1]
     return 0
 
-def train(epochs = 10000, step=0.1, rate=0.9):
+# train the data
+def train(epochs=10000, step=0.1, rate=0.9):
     for epoch in range(epochs):
         state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
         pos = []
@@ -116,6 +130,7 @@ def train(epochs = 10000, step=0.1, rate=0.9):
 
         feedback_value(state, all_states, pos)
 
+# get the result with the max value
 def choose(state, all_states):
     v = -2
     res = 0
@@ -128,50 +143,72 @@ def choose(state, all_states):
                 res = i
     return res
 
+# play with AI
 def play_ai():
     state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     while 1:
-        postion = choose(state, all_states)
-        state[postion] = 1
+        pos_ai = choose(state, all_states)
+        state[pos_ai] = 1
         print_chess_board(state)
         if reward(state) == 1:
-            print('AI win.')
+            print('AI win this game. ')
             break
         elif reward(state) == -1:
             print('It is a tie game.')
             break
-        pos = int(input("Enter the position that you want, please. "))
 
-        if pos > 9 or pos < 1:
-            print('Please enter a number from 1 to 9.')
-        elif state[pos-1] != 0:
-            print('The position has been taken. Please enter a empty position.')
+        #pos = int(input('Enter the position that you want, please. '))
+        while 1:
+            pos_input = input('Enter the position that you want, please. ')
+            try:
+                pos_pl = int(pos_input)
+            except:
+                print('Please enter a number from 1 to 9.')
+                continue
+            else:
+                if pos_pl > 9 or pos_pl < 1:
+                    print('Please enter a number from 1 to 9.')
+                    continue
+                elif state[pos_pl - 1] != 0:
+                    print('The position has been taken. Please enter a empty position.')
+                    continue
 
-        state[pos-1] = -1
-        print_chess_board(state)
-        if reward(state) == 1:
-            print('You win.')
+            state[pos_pl - 1] = -1
+            print_chess_board(state)
             break
 
+        if reward(state) == 1:
+            print('You win this game. ')
+            break
 
+# play with other player
 def play_human():
     state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     round = 1
     player = 1
     while 1:
         print_chess_board(state)
-        pos = int(input('Player'+str(player) + '. Enter the position that you want, please.'))
-        if pos > 9 or pos < 1:
-            print('Please enter a number from 0 to 9.')
-            continue
-        elif state[pos-1] != 0:
-            print('The position has been taken. Please enter a empty position.')
-            continue
+        while 1:
+            pos_input = input('Player' + str(player) + '. Enter the position that you want, please. ')
+            try:
+                pos_pl = int(pos_input)
+            except:
+                print('Please enter a number from 1 to 9.')
+                continue
+            else:
+                if pos_pl > 9 or pos_pl < 1:
+                    print('Please enter a number from 0 to 9.')
+                    continue
+                elif state[pos_pl - 1] != 0:
+                    print('The position has been taken. Please enter a empty position.')
+                    continue
+                else:
+                    break
 
         if player == 1:
-            state[pos-1] = 1
+            state[pos_pl - 1] = 1
         else:
-            state[pos-1] = -1
+            state[pos_pl - 1] = -1
 
         if reward(state) == 1:
             print_chess_board(state)
@@ -182,9 +219,10 @@ def play_human():
             print('It is a tie game.')
             break
 
-        player = player%2+1
-        round+=1
+        player = player % 2 + 1
+        round += 1
 
+# main function
 if __name__ == "__main__":
     state = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     all_states = get_states()
@@ -194,7 +232,13 @@ if __name__ == "__main__":
     print_position()
     print("*************")
     while 1:
-        mode = int(input("How many players? "))
+        mode_input = input("How many players? ")
+        try:
+            mode = int(mode_input)
+        except:
+            print('Please enter 1 or 2.')
+            continue
+
         if mode == 2:
             play_human()
         elif mode == 1:
@@ -202,6 +246,7 @@ if __name__ == "__main__":
         else:
             print("Please enter 1 or 2.")
             continue
+
         print('Do you wanna restart the game? (Y/N)')
         flag = input()
         if flag == 'Y' or flag == 'y':
